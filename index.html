@@ -154,8 +154,6 @@ button:hover {
 
     <input type="text" id="texto" placeholder="Título (ej: Volvé a escuchar lo que importa)">
 
-    <input type="file" id="logo">
-
     <img id="logoPreview">
 
     <button onclick="generar()">Generar diseño</button>
@@ -177,16 +175,7 @@ button:hover {
 </div>
 
 <script>
-let logoURL = "";
-
-document.getElementById("logo").onchange = function(e) {
-  const file = e.target.files[0];
-  logoURL = URL.createObjectURL(file);
-
-  document.getElementById("logoPreview").src = logoURL;
-
-  dibujarPreview();
-};
+let logoURL = "/logo.png";
 
 async function generar() {
   const texto = document.getElementById("texto").value;
