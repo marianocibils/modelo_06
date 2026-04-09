@@ -2,6 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Generador de Post IA</title>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
 
@@ -17,7 +18,7 @@ body {
   color: white;
   display: flex;
   justify-content: center;
-  padding: 200px;
+  padding: 40px 20px; /* antes 200px */
 }
 
 .app {
@@ -27,7 +28,33 @@ body {
   grid-template-columns: 1fr 1fr;
   gap: 30px;
 }
+@media (max-width: 768px) {
+  .app {
+    grid-template-columns: 1fr; /* 1 columna */
+  }
 
+  h2 {
+    font-size: 22px;
+  }
+
+  button {
+    font-size: 14px;
+    padding: 12px;
+  }
+
+  input {
+    padding: 10px;
+  }
+
+  #logoPreview {
+    margin: 15px auto;
+    display: block;
+  }
+
+  body {
+    padding: 20px 10px;
+  }
+}
 .panel {
   background: rgba(255,255,255,0.05);
   padding: 25px;
