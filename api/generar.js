@@ -1,5 +1,5 @@
+// En tu archivo de la API
 export default async function handler(req, res) {
-  // 1. Forzamos que la respuesta siempre sea JSON para evitar el error del "Token A"
   res.setHeader('Content-Type', 'application/json');
 
   if (req.method !== 'POST') {
@@ -10,22 +10,22 @@ export default async function handler(req, res) {
     const { texto } = req.body;
     const API_KEY = process.env.GOOGLE_AI_STUDIO_KEY;
     
-    // Usamos Imagen 3, el modelo estándar de Google AI Studio
+    // El modelo exacto para la API Key que mostraste:
     const MODEL_ID = "imagen-3.0-generate-001"; 
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_ID}:predict?key=${API_KEY}`;
 
-  const response = await fetch(url, {
+    const response = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        instances: [
-          {
-            prompt: texto // Asegúrate de que 'texto' sea un string simple
-          }
-        ],
+        instances: [{
+          // Agregamos un refuerzo al prompt para que no falle si el texto es corto
+          prompt: `A professional advertising photo for hearing aids, realistic style, high quality. Scene: ${texto || "an elderly person smiling"}`
+        }],
         parameters: {
           sampleCount: 1,
-          aspectRatio: "1:1"
+          aspectRatio: "1:1",
+          outputMimeType: "image/jpeg"
         }
       })
     });
@@ -33,11 +33,8 @@ export default async function handler(req, res) {
     const data = await response.json();
 
     if (!response.ok) {
-      console.error("Detalle error Google:", data);
-      return res.status(response.status).json({ 
-        error: "Google API Error", 
-        detalle: data.error?.message || "Error desconocido" 
-      });
+      console.error("Detalle error Google:", JSON.stringify(data));
+      return res.status(response.status).json(data);
     }
 
     return res.status(200).json(data);
