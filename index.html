@@ -197,27 +197,24 @@ async function generar() {
 
     const data = await res.json();
 
-    // CAMBIO AQUÍ: Google devuelve la imagen en data.predictions[0].bytesBase64Encoded
-    if (data.predictions && data.predictions[0].bytesBase64Encoded) {
-      const base64Data = data.predictions[0].bytesBase64Encoded;
-      const nuevaUrl = "data:image/jpeg;base64," + base64Data;
+    if (data.data && data.data[0].b64_json) {
+      const base64Data = data.data[0].b64_json;
+      // Corregimos la asignación para evitar el error de referencia
+      const nuevaUrl = "data:image/png;base64," + base64Data;
       
       imgResultado.src = nuevaUrl;
 
+      // IMPORTANTE: Esperar a que la imagen cargue en el elemento <img> 
+      // antes de intentar dibujarla en el Canvas
       imgResultado.onload = () => {
         dibujarPreview();
         loading.style.display = "none";
       };
-    } else {
-      // Si Google responde pero no hay imagen (ej: bloqueo por seguridad)
-      console.error("No se recibió imagen:", data);
-      alert("La IA no pudo generar la imagen. Intenta con otro texto.");
-      loading.style.display = "none";
     }
   } catch (error) {
     console.error("Error:", error);
     loading.style.display = "none";
-    alert("Error al conectar con el servidor");
+    alert("Error al generar la imagen");
   }
 }
 
