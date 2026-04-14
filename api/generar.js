@@ -1,50 +1,44 @@
 export default async function handler(req, res) {
-  res.setHeader('Content-Type', 'application/json');
-
   try {
-    const { texto } = req.body;
-    const API_KEY = process.env.GOOGLE_AI_STUDIO_KEY;
-    console.log("¿La clave existe?:", !!API_KEY); 
-console.log("Nombre de la clave buscada: GOOGLE_AI_STUDIO_KEY");
+    const body = typeof req.body === "string"
+      ? JSON.parse(req.body)
+      : req.body;
 
-if (!API_KEY) {
-    return res.status(500).json({ error: "La API KEY no está configurada en Vercel" });
-}
-    
-    // MODELO: Probá con este ID que es el más estable para predict
-    const MODEL_ID = "imagen-3.0-generate-001"; 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_ID}:predict?key=${API_KEY}`;
+    const { texto } = body;
 
-    const response = await fetch(url, {
+    if (!texto) {
+      return res.status(400).json({ error: "Falta texto" });
+    }
+
+    const prompt = `Crear una imagen publicitaria (1024 x 1024) realista sobre audífonos para personas con hipoacusia. (NO COLOCAR EN LA IMAGEN logos y textos.) (Evitar: estética fría, resultados genéricos)(Elegí vos, teniendo en cuenta esto "${texto}", si querés que sea: un/a anciano/a con su hija/o, un/a anciano/a con su pareja, un/a médico/a con paciente anciano/a, un grupo de ancianos/as, un/a anciano/a con su nieto/a, un/a anciano/a hablando por teléfono, un/a anciano/a sonriendo a cámara, una pareja de ancianos/as conversando, un/a anciano/a en consulta médica). (Interpretar el título como concepto creativo central de la imagen y generar una escena coherente y emocional en base a su significado.)
+
+Estilo:
+Fotográfico profesional, iluminación cálida, alta calidad, fondo desenfocado.`;
+
+    const response = await fetch("https://api.openai.com/v1/images/generations", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+        "Content-Type": "application/json"
+      },
       body: JSON.stringify({
-        instances: [{
-          prompt: texto || "Persona usando audífonos, estilo fotográfico profesional"
-        }],
-        parameters: {
-          sampleCount: 1,
-          aspectRatio: "1:1",
-          // Esto relaja los filtros por si el tema médico/ancianos causa conflicto
-          safetySetting: "BLOCK_NONE" 
-        }
+        model: "gpt-image-1.5",
+        prompt,
+        size: "1024x1024"
       })
     });
 
     const data = await response.json();
 
     if (!response.ok) {
-      // Si hay error, enviamos el detalle exacto de Google al cliente
-      console.error("Respuesta de Google:", data);
-      return res.status(response.status).json({
-        error: "Error de la API de Google",
-        detalle: data[0]?.error || data.error || data
-      });
+      console.error("ERROR OPENAI:", data);
+      return res.status(500).json(data);
     }
 
     return res.status(200).json(data);
 
   } catch (error) {
-    return res.status(500).json({ error: "Error de servidor", detalle: error.message });
+    console.error("ERROR SERVER:", error);
+    return res.status(500).json({ error: "Error interno" });
   }
 }
