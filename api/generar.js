@@ -4,6 +4,8 @@ export default async function handler(req, res) {
   try {
     const { texto } = req.body;
     const API_KEY = process.env.GOOGLE_AI_STUDIO_KEY;
+    console.log("¿La clave existe?:", !!API_KEY); 
+console.log("Nombre de la clave buscada: GOOGLE_AI_STUDIO_KEY");
 
 if (!API_KEY) {
     return res.status(500).json({ error: "La API KEY no está configurada en Vercel" });
