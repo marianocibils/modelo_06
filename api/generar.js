@@ -14,12 +14,19 @@ export default async function handler(req, res) {
     const MODEL_ID = "imagen-3.0-generate-001"; 
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_ID}:predict?key=${API_KEY}`;
 
-    const response = await fetch(url, {
+  const response = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        instances: [{ prompt: texto }],
-        parameters: { sampleCount: 1, aspectRatio: "1:1" }
+        instances: [
+          {
+            prompt: texto // Asegúrate de que 'texto' sea un string simple
+          }
+        ],
+        parameters: {
+          sampleCount: 1,
+          aspectRatio: "1:1"
+        }
       })
     });
 
