@@ -291,25 +291,34 @@ function dibujarPreview() {
   baseImage.src = img.src;
 
   baseImage.onload = () => {
-    // 1. Configurar dimensiones (Canvas = Imagen IA)
-const MAX_SIZE = 1024;
+  const SIZE = 1024;
 
-// Escala proporcional
-let width = baseImage.width;
-let height = baseImage.height;
+// Canvas SIEMPRE cuadrado
+canvas.width = SIZE;
+canvas.height = SIZE;
 
-if (width > MAX_SIZE || height > MAX_SIZE) {
-  const scale = Math.min(MAX_SIZE / width, MAX_SIZE / height);
-  width = width * scale;
-  height = height * scale;
+// 🔥 tipo "cover" (como Instagram / Canva)
+const imgRatio = baseImage.width / baseImage.height;
+const canvasRatio = 1; // 1024x1024
+
+let drawWidth, drawHeight, offsetX, offsetY;
+
+if (imgRatio > canvasRatio) {
+  // Imagen más ancha → recortar lados
+  drawHeight = SIZE;
+  drawWidth = baseImage.width * (SIZE / baseImage.height);
+  offsetX = -(drawWidth - SIZE) / 2;
+  offsetY = 0;
+} else {
+  // Imagen más alta → recortar arriba/abajo
+  drawWidth = SIZE;
+  drawHeight = baseImage.height * (SIZE / baseImage.width);
+  offsetX = 0;
+  offsetY = -(drawHeight - SIZE) / 2;
 }
 
-// Setear canvas ya escalado
-canvas.width = width;
-canvas.height = height;
-
-// Dibujar imagen escalada
-ctx.drawImage(baseImage, 0, 0, width, height);
+// Dibujar centrado y recortado
+ctx.drawImage(baseImage, offsetX, offsetY, drawWidth, drawHeight);
 
     // 3. Degradado (Cian/Teal) superior e inferior
     const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
