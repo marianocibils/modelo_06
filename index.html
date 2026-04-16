@@ -96,6 +96,19 @@ button {
   transition: 0.3s;
 }
 
+.btn-descargar {
+  width: 100%;
+  padding: 14px;
+  margin-top: 20px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #3b82f6, #6366f1);
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
 button:hover {
   transform: scale(1.03);
   opacity: 0.9;
@@ -152,6 +165,7 @@ button:hover {
   width: 100%;
   margin-top: 0;
 }
+
 </style>
 
 </head>
@@ -190,7 +204,7 @@ button:hover {
     <canvas id="previewCanvas"></canvas>
     <img id="resultado" style="display:none;">
   </div>
-  <button onclick="descargar()">Descargar imagen</button>
+  <button class="btn-descargar" onclick="descargar()">Descargar imagen</button>
 </div>
 </div>
 
