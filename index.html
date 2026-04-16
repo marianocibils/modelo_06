@@ -159,7 +159,7 @@ button:hover {
     <input type="text" id="texto" placeholder="Título (ej: Volvé a escuchar lo que importa)">
     <input type="file" id="inputImagen" accept="image/*" capture="environment" style="display:none">
 
-    <button onclick="abrirCamara()">📷 Cargar imagen</button>
+    <button onclick="abrirCamara()">Subir imagen</button>
     <img id="logoPreview">
 
     <button onclick="generar()">Generar diseño</button>
@@ -251,7 +251,32 @@ function descargar() {
   link.href = canvas.toDataURL("image/png");
   link.click();
 }
+function dibujarTextoMultilinea(ctx, texto, x, y, maxWidth, lineHeight) {
+  const palabras = texto.split(" ");
+  let linea = "";
+  let lineas = [];
 
+  for (let i = 0; i < palabras.length; i++) {
+    const testLinea = linea + palabras[i] + " ";
+    const metrics = ctx.measureText(testLinea);
+
+    if (metrics.width > maxWidth && i > 0) {
+      lineas.push(linea);
+      linea = palabras[i] + " ";
+    } else {
+      linea = testLinea;
+    }
+  }
+
+  lineas.push(linea);
+
+  // Dibujar líneas
+  lineas.forEach((l, index) => {
+    ctx.fillText(l, x, y + (index * lineHeight));
+  });
+
+  return lineas.length;
+}
 function dibujarPreview() {
   const canvas = document.getElementById("previewCanvas");
   const ctx = canvas.getContext("2d");
@@ -303,7 +328,8 @@ ctx.drawImage(baseImage, 0, 0, width, height);
     // 5. TEXTO DINÁMICO (Título)
     ctx.fillStyle = "white";
     // Aseguramos que NO tenga italic y cargue Montserrat Bold
-    ctx.font = "bold 90px Montserrat, sans-serif"; 
+    const fontSize = canvas.width * 0.08;
+    ctx.font = `bold ${fontSize}px Montserrat, sans-serif`;
     ctx.textAlign = "center";
     
     // --- CORRECCIÓN 1: RESTAURAR ALINEACIÓN ESTÁNDAR ---
@@ -311,18 +337,22 @@ ctx.drawImage(baseImage, 0, 0, width, height);
     ctx.textBaseline = "alphabetic"; 
     // ---------------------------------------------------
 
-    const palabras = textoUsuario.split(" ");
-    if (palabras.length > 2) {
-      const mitad = Math.ceil(palabras.length / 2);
-      const linea1 = palabras.slice(0, mitad).join(" ");
-      const linea2 = palabras.slice(mitad).join(" ");
-      
-      // Con textBaseline 'alphabetic', estos valores vuelven a estar arriba:
-      ctx.fillText(linea1, canvas.width * 0.5, canvas.height * 0.12);
-      ctx.fillText(linea2, canvas.width * 0.5, canvas.height * 0.20); 
-    } else {
-      ctx.fillText(textoUsuario, canvas.width * 0.5, canvas.height * 0.15);
-    }
+   const maxWidth = canvas.width * 0.8;   // ancho máximo del texto
+   const startY = canvas.height * 0.12;   // altura inicial
+   const lineHeight = 90;                 // espacio entre líneas
+
+ctx.textAlign = "center";
+
+// Dibujar texto con límite
+
+dibujarTextoMultilinea(
+  ctx,
+  textoUsuario,
+  canvas.width / 2,
+  startY,
+  maxWidth,
+  lineHeight
+);
 
     // 6. PIE DE PÁGINA (Layout Alineado)
     const paddingX = canvas.width * 0.06; // Margen lateral
