@@ -267,11 +267,24 @@ function dibujarPreview() {
 
   baseImage.onload = () => {
     // 1. Configurar dimensiones (Canvas = Imagen IA)
-    canvas.width = baseImage.width;
-    canvas.height = baseImage.height;
+const MAX_SIZE = 1024;
 
-    // 2. Dibujar Imagen base
-    ctx.drawImage(baseImage, 0, 0);
+// Escala proporcional
+let width = baseImage.width;
+let height = baseImage.height;
+
+if (width > MAX_SIZE || height > MAX_SIZE) {
+  const scale = Math.min(MAX_SIZE / width, MAX_SIZE / height);
+  width = width * scale;
+  height = height * scale;
+}
+
+// Setear canvas ya escalado
+canvas.width = width;
+canvas.height = height;
+
+// Dibujar imagen escalada
+ctx.drawImage(baseImage, 0, 0, width, height);
 
     // 3. Degradado (Cian/Teal) superior e inferior
     const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
