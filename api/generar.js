@@ -18,7 +18,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: "Falta GEMINI_API_KEY en Vercel" });
     }
 
-    const prompt =`Fotografía publicitaria hiperrealista de una persona mayor con [sujeto/interacción] teniendo en cuenta esto "${texto}". Lleva puestos unos discretos audífonos para la hipoacusia. Expresión de alegría y conexión. Iluminación natural cálida. Fondo [entorno] desenfocado (bokeh). Primer plano o plano medio.
+  const prompt =`Fotografía publicitaria hiperrealista de una persona mayor con [sujeto/interacción] teniendo en cuenta esto "${texto}". Lleva puestos unos discretos audífonos para la hipoacusia. Expresión de alegría y conexión. Iluminación natural cálida. Fondo [entorno] desenfocado (bokeh). Primer plano o plano medio.
     
 [sujeto/interacción]: su hija/o, su pareja, su nieto/a, hablando por teléfono, sonriendo a cámara, en consulta médica, con un/a médico/a.]
 
@@ -26,24 +26,32 @@ export default async function handler(req, res) {
 
 (IMPORTANTE: No agregar textos en la imagen)`;
 
-const response = await fetch(
-  `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image-preview:predict?key=${process.env.GEMINI_API_KEY}`,
-  {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      instances: [
-        { prompt }
-      ],
-      parameters: {
-        sampleCount: 1,
-        aspectRatio: "1:1"
+    const response = await fetch(
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image-preview:generateContent",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": process.env.GEMINI_API_KEY
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                { text: prompt }
+              ]
+            }
+          ],
+          generationConfig: {
+            responseModalities: ["IMAGE"],
+            imageConfig: {
+              aspectRatio: "1:1",
+              imageSize: "2K"
+            }
+          }
+        })
       }
-    })
-  }
-);
+    );
 
     const raw = await response.text();
     console.log("RAW GOOGLE RESPONSE:", raw);
@@ -59,19 +67,16 @@ const response = await fetch(
     }
 
     if (!response.ok) {
-      console.error("ERROR GOOGLE:", data);
       return res.status(500).json({
         error: data?.error?.message || "Error en Google API",
         detalle: data
       });
     }
 
-    if (
-      !data.predictions ||
-      !data.predictions[0] ||
-      !data.predictions[0].bytesBase64Encoded
-    ) {
-      console.error("RESPUESTA INCOMPLETA:", data);
+    const parts = data?.candidates?.[0]?.content?.parts || [];
+    const imagePart = parts.find(p => p.inlineData?.data);
+
+    if (!imagePart) {
       return res.status(500).json({
         error: "Google no devolvió imagen",
         detalle: data
@@ -81,7 +86,7 @@ const response = await fetch(
     return res.status(200).json({
       data: [
         {
-          b64_json: data.predictions[0].bytesBase64Encoded
+          b64_json: imagePart.inlineData.data
         }
       ]
     });
