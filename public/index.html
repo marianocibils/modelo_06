@@ -256,18 +256,28 @@ async function dibujarStory() {
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Fondo: la misma imagen ampliada y blurreada
-  ctx.save();
-  ctx.filter = "blur(35px)";
-  ctx.drawImage(img, -420, 0, 1920, 1920);
-  ctx.restore();
+  // Imagen ampliada y recortada para cubrir 9:16
+  const canvasRatio = canvas.width / canvas.height;
+  const imgRatio = img.width / img.height;
 
-  // Oscurecemos un poco el fondo
-  ctx.fillStyle = "rgba(0,0,0,0.25)";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  let drawWidth;
+  let drawHeight;
+  let offsetX;
+  let offsetY;
 
-  // Imagen original 1:1 centrada
-  ctx.drawImage(img, 0, 420, 1080, 1080);
+  if (imgRatio > canvasRatio) {
+    drawHeight = canvas.height;
+    drawWidth = img.width * (canvas.height / img.height);
+    offsetX = (canvas.width - drawWidth) / 2;
+    offsetY = 0;
+  } else {
+    drawWidth = canvas.width;
+    drawHeight = img.height * (canvas.width / img.width);
+    offsetX = 0;
+    offsetY = (canvas.height - drawHeight) / 2;
+  }
+
+  ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
 
   await dibujarContenidoComun(ctx, canvas);
 }
