@@ -24,7 +24,7 @@ export default async function handler(req, res) {
 
 [entorno]: acogedor en casa, parque soleado, cafetería, clínica moderna, etc.
 
-(IMPORTANTE: No agregar textos en la imagen`;
+(IMPORTANTE: No agregar textos en la imagen)`;
 
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image-001:predict?key=${process.env.GEMINI_API_KEY}`,
