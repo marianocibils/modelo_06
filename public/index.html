@@ -300,7 +300,7 @@ async function dibujarContenidoComun(ctx, canvas) {
   ctx.textAlign = "center";
   ctx.textBaseline = "alphabetic";
 
-  ctx.font = "bold 72px Montserrat, sans-serif";
+  ctx.font = "bold 80px Montserrat, sans-serif";
 
   const palabras = textoUsuario.split(" ");
 
@@ -320,10 +320,10 @@ async function dibujarContenidoComun(ctx, canvas) {
 
   ctx.textAlign = "left";
 
-  ctx.font = "32px Montserrat, sans-serif";
+  ctx.font = "48px Montserrat, sans-serif";
   ctx.fillText("Consultas sin cargo", paddingX, baseY - 50);
 
-  ctx.font = "bold 48px Montserrat, sans-serif";
+  ctx.font = "bold 60px Montserrat, sans-serif";
   ctx.fillText("3412-3456789", paddingX, baseY);
 
   if (logoURL) {
@@ -332,7 +332,7 @@ async function dibujarContenidoComun(ctx, canvas) {
 
     await new Promise((resolve) => {
       logoImg.onload = () => {
-        const h = 90;
+        const h = 120;
         const w = logoImg.width * (h / logoImg.height);
 
         const logoX = canvas.width - w - paddingX;
