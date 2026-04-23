@@ -28,6 +28,13 @@ IMPORTANT COMPOSITION RULES:
 - Do NOT crop faces, heads, or hands.
 - Balanced composition, symmetrical framing.
 
+STRICT RULES ABOUT TEXT (VERY IMPORTANT):
+- Absolutely NO text in the image.
+- No letters, words, numbers, captions, subtitles, or logos.
+- No signage, posters, screens, labels, packaging, or readable elements.
+- Avoid any environment where text could naturally appear.
+- Background must be clean, neutral, and free of any readable content.
+
 The person is wearing subtle hearing aids for hearing loss.
 Warm, natural lighting.
 Joyful, connected expression.
@@ -42,11 +49,11 @@ Possible interactions:
 - smiling at camera
 - in a medical consultation with a doctor
 
-Possible environments:
-- cozy home
-- sunny park
-- modern clinic
-- café
+Possible environments (TEXT-FREE):
+- cozy home interior (no screens, no posters)
+- sunny park (no signs)
+- minimal modern clinic (no signage or labels)
+- neutral indoor environment
 
 The image must look like a professional advertising campaign, elegant, realistic, emotional, and clean.`;
 
