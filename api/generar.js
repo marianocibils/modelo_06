@@ -4,9 +4,10 @@ export default async function handler(req, res) {
       return res.status(405).json({ error: "Método no permitido" });
     }
 
-    const body = typeof req.body === "string"
-      ? JSON.parse(req.body)
-      : (req.body || {});
+    const body =
+      typeof req.body === "string"
+        ? JSON.parse(req.body)
+        : (req.body || {});
 
     const { texto } = body;
 
@@ -18,79 +19,99 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: "Falta GEMINI_API_KEY en Vercel" });
     }
 
-  const prompt =`Fotografía publicitaria hiperrealista de una persona mayor con [sujeto/interacción] teniendo en cuenta esto "${texto}". Lleva puestos unos discretos audífonos para la hipoacusia. Expresión de alegría y conexión. Iluminación natural cálida. Fondo [entorno] desenfocado (bokeh). Primer plano o plano medio.
-    
-[sujeto/interacción]: su hija/o, su pareja, su nieto/a, hablando por teléfono, sonriendo a cámara, en consulta médica, con un/a médico/a.]
+    const prompt = `Advertising hyperrealistic photo of an older adult in a natural and emotional scene, based on this idea: "${texto}".
 
-[entorno]: acogedor en casa, parque soleado, cafetería, clínica moderna, etc.
+The person is wearing subtle hearing aids for hearing loss.
+Warm, natural lighting.
+Joyful, connected expression.
+Shallow depth of field / soft bokeh background.
+Close-up or medium shot.
+Do not add any text inside the image.
 
-(IMPORTANTE: No agregar textos en la imagen)`;
+Possible interactions:
+- with son or daughter
+- with partner
+- with grandchild
+- talking on the phone
+- smiling at camera
+- in a medical consultation with a doctor
 
-    const response = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image-preview:generateContent",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-goog-api-key": process.env.GEMINI_API_KEY
-        },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                { text: prompt }
-              ]
+Possible environments:
+- cozy home
+- sunny park
+- modern clinic
+- café
+
+The image must look like a professional advertising campaign, elegant, realistic, emotional, and clean.`;
+
+    async function generarImagen(aspectRatio) {
+      const response = await fetch(
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image-preview:generateContent",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-goog-api-key": process.env.GEMINI_API_KEY
+          },
+          body: JSON.stringify({
+            contents: [
+              {
+                parts: [{ text: prompt }]
+              }
+            ],
+            generationConfig: {
+              responseModalities: ["IMAGE"],
+              imageConfig: {
+                aspectRatio,
+                imageSize: "1K"
+              }
             }
-          ],
-          generationConfig: {
-            responseModalities: ["IMAGE"],
-            imageConfig: {
-              aspectRatio: "1:1",
-              imageSize: "1K"
-            }
-          }
-        })
+          })
+        }
+      );
+
+      const raw = await response.text();
+      console.log(`RAW GOOGLE RESPONSE (${aspectRatio}):`, raw);
+
+      let data;
+      try {
+        data = JSON.parse(raw);
+      } catch (e) {
+        throw new Error(`Google devolvió una respuesta no JSON para ${aspectRatio}: ${raw}`);
       }
-    );
 
-    const raw = await response.text();
-    console.log("RAW GOOGLE RESPONSE:", raw);
+      if (!response.ok) {
+        throw new Error(
+          data?.error?.message || `Error en Google API para ${aspectRatio}`
+        );
+      }
 
-    let data;
-    try {
-      data = JSON.parse(raw);
-    } catch (e) {
-      return res.status(500).json({
-        error: "Google devolvió una respuesta no JSON",
-        detalle: raw
-      });
+      const parts = data?.candidates?.[0]?.content?.parts || [];
+      const imagePart = parts.find((p) => p.inlineData?.data);
+
+      if (!imagePart) {
+        throw new Error(`Google no devolvió imagen para ${aspectRatio}`);
+      }
+
+      return imagePart.inlineData.data;
     }
 
-    if (!response.ok) {
-      return res.status(500).json({
-        error: data?.error?.message || "Error en Google API",
-        detalle: data
-      });
-    }
-
-    const parts = data?.candidates?.[0]?.content?.parts || [];
-    const imagePart = parts.find(p => p.inlineData?.data);
-
-    if (!imagePart) {
-      return res.status(500).json({
-        error: "Google no devolvió imagen",
-        detalle: data
-      });
-    }
+    // Generamos ambas en paralelo
+    const [postBase64, storyBase64] = await Promise.all([
+      generarImagen("1:1"),
+      generarImagen("9:16")
+    ]);
 
     return res.status(200).json({
-      data: [
-        {
-          b64_json: imagePart.inlineData.data
-        }
-      ]
+      post: {
+        aspectRatio: "1:1",
+        b64_json: postBase64
+      },
+      story: {
+        aspectRatio: "9:16",
+        b64_json: storyBase64
+      }
     });
-
   } catch (error) {
     console.error("ERROR SERVER:", error);
     return res.status(500).json({
