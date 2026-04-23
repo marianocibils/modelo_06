@@ -204,7 +204,9 @@ try {
 }
 
 if (!res.ok) {
-  throw new Error(data.error || "Error en el servidor");
+  throw new Error(
+    data?.error?.message || data?.message || "Error en el servidor"
+  );
 }
 
     if (data.data && data.data[0].b64_json) {
