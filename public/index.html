@@ -109,21 +109,40 @@
     .hidden-img {
       display: none;
     }
+
+    .logo-panel {
+  width: 180px;
+  max-width: 80%;
+  display: block;
+  margin: 0 auto 25px auto;
+}
   </style>
 </head>
 
 <body>
   <div class="app">
-    <div class="panel">
-      <h2>Generador de Contenido</h2>
+<div class="panel">
+  <img src="/logo.png" class="logo-panel" alt="Logo">
+
+  <h2>Generador de Contenido</h2>
 
       <input
         type="text"
         id="texto"
-        placeholder="Título (ej: Volvé a escuchar lo que importa)"
+        placeholder="Título (ej: Volvé a escuchar con claridad)"
       >
+<label class="label-control">
+  Tamaño del título: <span id="fontSizeValue">72</span> px
+</label>
 
-      <button onclick="generar()">Generar post + historia</button>
+<input
+  type="range"
+  id="fontSizeControl"
+  min="40"
+  max="110"
+  value="72"
+>
+      <button onclick="generar()">Generar</button>
 
       <div class="loading" id="loading" style="display:none;">
         Generando imágenes...
@@ -132,7 +151,7 @@
 
     <div class="resultados">
       <div class="panel">
-        <h3>Post 1:1</h3>
+        <h3>Post</h3>
         <div class="preview">
           <canvas id="canvasPost"></canvas>
           <img id="imgPost" class="hidden-img">
@@ -143,7 +162,7 @@
       </div>
 
       <div class="panel">
-        <h3>Historia 9:16</h3>
+        <h3>Historia</h3>
         <div class="preview">
           <canvas id="canvasStory"></canvas>
           <img id="imgStory" class="hidden-img">
