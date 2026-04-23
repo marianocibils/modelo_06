@@ -202,10 +202,10 @@ try {
 } catch (e) {
   throw new Error("La respuesta no es JSON válido");
 }
-
 if (!res.ok) {
+  console.error("Error completo del servidor:", data);
   throw new Error(
-    data?.error?.message || data?.message || "Error en el servidor"
+    data?.error || data?.detalle || data?.message || "Error en el servidor"
   );
 }
 
