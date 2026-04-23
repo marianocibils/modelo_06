@@ -19,23 +19,26 @@ export default async function handler(req, res) {
 Estilo:
 Fotográfico profesional, iluminación cálida, alta calidad, fondo desenfocado.`;
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${process.env.GEMINI_API_KEY}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        instances: [
-          {
-            prompt: prompt
-          }
-        ],
-        parameters: {
-          sampleCount: 1,
-          aspectRatio: "1:1"
+const response = await fetch(
+  `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${process.env.GEMINI_API_KEY}`,
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      instances: [
+        {
+          prompt: prompt
         }
-      })
-    });
+      ],
+      parameters: {
+        sampleCount: 1,
+        aspectRatio: "1:1"
+      }
+    })
+  }
+);
 
     const data = await response.json();
 
