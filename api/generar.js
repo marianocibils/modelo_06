@@ -26,26 +26,24 @@ export default async function handler(req, res) {
 
 (IMPORTANTE: No agregar textos en la imagen)`;
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image-001:predict?key=${process.env.GEMINI_API_KEY}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          instances: [
-            {
-              prompt: prompt
-            }
-          ],
-          parameters: {
-            sampleCount: 1,
-            aspectRatio: "1:1"
-          }
-        })
+const response = await fetch(
+  `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image-preview:predict?key=${process.env.GEMINI_API_KEY}`,
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      instances: [
+        { prompt }
+      ],
+      parameters: {
+        sampleCount: 1,
+        aspectRatio: "1:1"
       }
-    );
+    })
+  }
+);
 
     const raw = await response.text();
     console.log("RAW GOOGLE RESPONSE:", raw);
