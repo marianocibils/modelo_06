@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generador de Post IA</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+* {
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, sans-serif;
+}
+
+body {
+  margin: 0;
+  background: linear-gradient(45deg, #0f172a, #1e293b);
+  color: white;
+
+  min-height: 100vh; /* 🔥 clave */
+  display: flex;
+  justify-content: center;
+  align-items: center; /* 🔥 centra vertical */
+
+  padding: 20px;
+}
+
+.app {
+  width: 100%;
+  max-width: 1000px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+}
+@media (max-width: 768px) {
+  .app {
+    grid-template-columns: 1fr; /* 1 columna */
+  }
+
+  h2 {
+    font-size: 22px;
+  }
+
+  button {
+    font-size: 14px;
+    padding: 12px;
+  }
+
+  input {
+    padding: 10px;
+  }
+
+  #logoPreview {
+    margin: 15px auto;
+    display: block;
+  }
+
+  body {
+    padding: 20px 10px;
+  }
+}
+.panel {
+  background: rgba(255,255,255,0.05);
+  padding: 25px;
+  border-radius: 15px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+h2 {
+  margin-top: 0;
+  font-size: 30px;
+  text-align: center;
+}
+
+input {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  border: none;
+  border-radius: 8px;
+  outline: none;
+  background: rgba(255,255,255,0.1);
+  color: white;
+}
+
+button {
+  width: 100%;
+  padding: 14px;
+  margin-top: 20px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #3b82f6, #6366f1);
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+button:hover {
+  transform: scale(1.03);
+  opacity: 0.9;
+}
+.logo {
+  position: absolute;
+  bottom: 25px;
+  right: 25px;
+  width: 30%;
+  max-width: 180px;
+  border-radius: none;
+  filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5));
+}
+
+.preview {
+  position: relative;
+  width: 100%;
+}
+
+/* Esto obliga al canvas a no medir más que su contenedor */
+#previewCanvas {
+  width: 100%;
+  height: auto;
+  border-radius: 10px; /* Opcional, para que combine con tus paneles */
+  display: block;
+}
+
+.preview img {
+  width: 100%;
+}
+
+.resultado {
+  width: 100%;
+}
+
+.loading {
+  text-align: center;
+  margin-top: 15px;
+  opacity: 0.7;
+}
+
+#logoPreview {
+  margin: 20px 0 0 100px;
+  max-width: 200px;
+  opacity: 0.8;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="app">
+
+  <div class="panel">
+    <h2>Generador de Contenido</h2>
+
+    <input type="text" id="texto" placeholder="Título (ej: Volvé a escuchar lo que importa)">
+
+    <img id="logoPreview">
+
+    <button onclick="generar()">Generar diseño</button>
+
+    <div class="loading" id="loading" style="display:none;">
+      Generando imagen...
+    </div>
+  </div>
+
+  <div class="panel">
+  <h2>Resultado final</h2>
+  <div class="preview">
+    <canvas id="previewCanvas"></canvas>
+    <img id="resultado" style="display:none;">
+  </div>
+  <button onclick="descargar()">Descargar imagen</button>
+</div>
+</div>
+
+<script>
+let logoURL = "/logo.png";
+
+async function generar() {
+  const texto = document.getElementById("texto").value;
+  const loading = document.getElementById("loading");
+  const imgResultado = document.getElementById("resultado");
+
+  loading.style.display = "block";
+
+  try {
+    const res = await fetch("/api/generar", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ texto })
+    });
+
+    const data = await res.json();
+
+    if (data.data && data.data[0].b64_json) {
+      const base64Data = data.data[0].b64_json;
+      // Corregimos la asignación para evitar el error de referencia
+      const nuevaUrl = "data:image/png;base64," + base64Data;
+      
+      imgResultado.src = nuevaUrl;
+
+      // IMPORTANTE: Esperar a que la imagen cargue en el elemento <img> 
+      // antes de intentar dibujarla en el Canvas
+      imgResultado.onload = () => {
+        dibujarPreview();
+        loading.style.display = "none";
+      };
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    loading.style.display = "none";
+    alert("Error al generar la imagen");
+  }
+}
+
+function descargar() {
+  const canvas = document.getElementById("previewCanvas");
+
+  const link = document.createElement("a");
+  link.download = "post.png";
+  link.href = canvas.toDataURL("image/png");
+  link.click();
+}
+
+function dibujarPreview() {
+  const canvas = document.getElementById("previewCanvas");
+  const ctx = canvas.getContext("2d");
+
+  const img = document.getElementById("resultado");
+  const textoUsuario = document.getElementById("texto").value || "";
+  const logo = logoURL;
+
+  if (!img.src) return;
+
+  const baseImage = new Image();
+  baseImage.src = img.src;
+
+  baseImage.onload = () => {
+    // 1. Configurar dimensiones (Canvas = Imagen IA)
+    canvas.width = baseImage.width;
+    canvas.height = baseImage.height;
+
+    // 2. Dibujar Imagen base
+    ctx.drawImage(baseImage, 0, 0);
+
+    // 3. Degradado (Cian/Teal) superior e inferior
+    const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    grad.addColorStop(0, "rgba(0,120,135,0.8)"); 
+    grad.addColorStop(0.25, "rgba(0,120,135,0)"); 
+    grad.addColorStop(0.75, "rgba(0,120,135,0)"); 
+    grad.addColorStop(1, "rgba(0,120,135,0.9)"); 
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // 4. CONFIGURACIÓN DE SOMBRA (Se aplicará a todo el post)
+    ctx.shadowColor = "rgba(0,0,0,0.6)"; // Un poco más oscura para notar la diferencia
+    ctx.shadowBlur = 12;
+    ctx.shadowOffsetY = 4;
+
+    // 5. TEXTO DINÁMICO (Título)
+    ctx.fillStyle = "white";
+    // Aseguramos que NO tenga italic y cargue Montserrat Bold
+    ctx.font = "bold 90px Montserrat, sans-serif"; 
+    ctx.textAlign = "center";
+    
+    // --- CORRECCIÓN 1: RESTAURAR ALINEACIÓN ESTÁNDAR ---
+    // Volvemos a la alineación por defecto para que los valores de altura coincidan con el diseño.
+    ctx.textBaseline = "alphabetic"; 
+    // ---------------------------------------------------
+
+    const palabras = textoUsuario.split(" ");
+    if (palabras.length > 2) {
+      const mitad = Math.ceil(palabras.length / 2);
+      const linea1 = palabras.slice(0, mitad).join(" ");
+      const linea2 = palabras.slice(mitad).join(" ");
+      
+      // Con textBaseline 'alphabetic', estos valores vuelven a estar arriba:
+      ctx.fillText(linea1, canvas.width * 0.5, canvas.height * 0.12);
+      ctx.fillText(linea2, canvas.width * 0.5, canvas.height * 0.20); 
+    } else {
+      ctx.fillText(textoUsuario, canvas.width * 0.5, canvas.height * 0.15);
+    }
+
+    // 6. PIE DE PÁGINA (Layout Alineado)
+    const paddingX = canvas.width * 0.06; // Margen lateral
+    const baseY = canvas.height * 0.92; // Línea base del pie
+
+    // Consultas y Teléfono a la IZQUIERDA
+    ctx.textAlign = "left";
+    
+    // --- CORRECCIÓN 2: NO RESETEAR LA SOMBRA AQUÍ ---
+    // Dejamos que la sombra siga activa para los textos inferiores.
+    // ------------------------------------------------
+
+    ctx.font = "32px Montserrat, sans-serif";
+    ctx.fillText("Consultas sin cargo", paddingX, baseY - 45); // 45px arriba de la línea base
+
+    ctx.font = "bold 48px Montserrat, sans-serif";
+    // Número actualizado
+    ctx.fillText("3412-3456789", paddingX, baseY); 
+
+
+    // LOGO a la DERECHA
+    if (logo) {
+      const logoImg = new Image();
+      logoImg.src = logo;
+
+      logoImg.onload = () => {
+        const h = 90; // Altura fija para el logo
+        const w = logoImg.width * (h / logoImg.height);
+
+        // Posicionamos el logo alineado a la derecha
+        const logoX = canvas.width - w - paddingX;
+        // Centrado verticalmente respecto a la línea de teléfono
+        const logoY = baseY - h + 15; 
+
+        // El logo también hereda la sombra configurada arriba automáticamente.
+        ctx.drawImage(logoImg, logoX, logoY, w, h);
+        
+        // Resetear sombra al final de todo
+        ctx.shadowColor = "transparent";
+      };
+    } else {
+        // Resetear sombra al final si no hay logo
+        ctx.shadowColor = "transparent";
+    }
+  };
+}
+document.getElementById("texto").addEventListener("input", dibujarPreview);
+</script>
+
+</body>
+</html>
