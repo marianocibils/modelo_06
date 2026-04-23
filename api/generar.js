@@ -22,10 +22,12 @@ export default async function handler(req, res) {
     
 [sujeto/interacción]: su hija/o, su pareja, su nieto/a, hablando por teléfono, sonriendo a cámara, en consulta médica, con un/a médico/a.]
 
-[entorno]: acogedor en casa, parque soleado, cafetería, clínica moderna, etc.`;
+[entorno]: acogedor en casa, parque soleado, cafetería, clínica moderna, etc.
+
+(IMPORTANTE: No agregar textos en la imagen`;
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${process.env.GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image-001:predict?key=${process.env.GEMINI_API_KEY}`,
       {
         method: "POST",
         headers: {
