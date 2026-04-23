@@ -192,27 +192,21 @@
           );
         }
 
-        if (!data.post?.b64_json || !data.story?.b64_json) {
-          throw new Error("No llegaron las dos imágenes");
-        }
+if (!data.post?.b64_json) {
+  throw new Error("No llegó la imagen del post");
+}
 
-        const imgPost = document.getElementById("imgPost");
-        const imgStory = document.getElementById("imgStory");
+const imgPost = document.getElementById("imgPost");
+const imgStory = document.getElementById("imgStory");
 
-        const postLoaded = cargarImagen(
-          imgPost,
-          "data:image/png;base64," + data.post.b64_json
-        );
+const imagenBase = "data:image/png;base64," + data.post.b64_json;
 
-        const storyLoaded = cargarImagen(
-          imgStory,
-          "data:image/png;base64," + data.story.b64_json
-        );
+// Usamos LA MISMA imagen para post y story
+await cargarImagen(imgPost, imagenBase);
+await cargarImagen(imgStory, imagenBase);
 
-        await Promise.all([postLoaded, storyLoaded]);
-
-        await dibujarPreview("imgPost", "canvasPost");
-        await dibujarPreview("imgStory", "canvasStory");
+await dibujarPost();
+await dibujarStory();
 
         loading.style.display = "none";
       } catch (error) {
@@ -238,102 +232,123 @@
       link.click();
     }
 
-    async function dibujarPreview(imgId, canvasId) {
-      const canvas = document.getElementById(canvasId);
-      const ctx = canvas.getContext("2d");
-      const img = document.getElementById(imgId);
-      const textoUsuario = document.getElementById("texto").value || "";
+    async function dibujarPost() {
+  const canvas = document.getElementById("canvasPost");
+  const ctx = canvas.getContext("2d");
+  const img = document.getElementById("imgPost");
 
-      if (!img.src) return;
+  canvas.width = 1080;
+  canvas.height = 1080;
 
-      const baseImage = new Image();
-      baseImage.src = img.src;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(img, 0, 0, 1080, 1080);
 
-      await new Promise((resolve, reject) => {
-        baseImage.onload = resolve;
-        baseImage.onerror = reject;
-      });
+  await dibujarContenidoComun(ctx, canvas);
+}
 
-      canvas.width = baseImage.width;
-      canvas.height = baseImage.height;
+async function dibujarStory() {
+  const canvas = document.getElementById("canvasStory");
+  const ctx = canvas.getContext("2d");
+  const img = document.getElementById("imgStory");
 
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(baseImage, 0, 0);
+  canvas.width = 1080;
+  canvas.height = 1920;
 
-      const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-      grad.addColorStop(0, "rgba(0,120,135,0.8)");
-      grad.addColorStop(0.25, "rgba(0,120,135,0)");
-      grad.addColorStop(0.75, "rgba(0,120,135,0)");
-      grad.addColorStop(1, "rgba(0,120,135,0.9)");
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      ctx.shadowColor = "rgba(0,0,0,0.6)";
-      ctx.shadowBlur = 12;
-      ctx.shadowOffsetY = 4;
+  // Fondo: la misma imagen ampliada y blurreada
+  ctx.save();
+  ctx.filter = "blur(35px)";
+  ctx.drawImage(img, -420, 0, 1920, 1920);
+  ctx.restore();
 
-      ctx.fillStyle = "white";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "alphabetic";
+  // Oscurecemos un poco el fondo
+  ctx.fillStyle = "rgba(0,0,0,0.25)";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Escala dinámica según tamaño del canvas
-      const tituloSize = Math.max(42, Math.floor(canvas.width * 0.07));
-      const subtituloSize = Math.max(20, Math.floor(canvas.width * 0.03));
-      const telefonoSize = Math.max(28, Math.floor(canvas.width * 0.045));
-      const logoHeight = Math.max(60, Math.floor(canvas.width * 0.12));
+  // Imagen original 1:1 centrada
+  ctx.drawImage(img, 0, 420, 1080, 1080);
 
-      ctx.font = `bold ${tituloSize}px Montserrat, sans-serif`;
+  await dibujarContenidoComun(ctx, canvas);
+}
 
-      const palabras = textoUsuario.split(" ");
-      if (palabras.length > 2) {
-        const mitad = Math.ceil(palabras.length / 2);
-        const linea1 = palabras.slice(0, mitad).join(" ");
-        const linea2 = palabras.slice(mitad).join(" ");
+async function dibujarContenidoComun(ctx, canvas) {
+  const textoUsuario = document.getElementById("texto").value || "";
+  const isStory = canvas.height > canvas.width;
 
-        ctx.fillText(linea1, canvas.width * 0.5, canvas.height * 0.12);
-        ctx.fillText(linea2, canvas.width * 0.5, canvas.height * 0.20);
-      } else {
-        ctx.fillText(textoUsuario, canvas.width * 0.5, canvas.height * 0.15);
-      }
+  const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  grad.addColorStop(0, "rgba(0,120,135,0.8)");
+  grad.addColorStop(0.25, "rgba(0,120,135,0)");
+  grad.addColorStop(0.75, "rgba(0,120,135,0)");
+  grad.addColorStop(1, "rgba(0,120,135,0.9)");
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      const paddingX = canvas.width * 0.06;
-      const baseY = canvas.height * 0.92;
+  ctx.shadowColor = "rgba(0,0,0,0.6)";
+  ctx.shadowBlur = 12;
+  ctx.shadowOffsetY = 4;
 
-      ctx.textAlign = "left";
-      ctx.font = `${subtituloSize}px Montserrat, sans-serif`;
-      ctx.fillText("Consultas sin cargo", paddingX, baseY - telefonoSize);
+  ctx.fillStyle = "white";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "alphabetic";
 
-      ctx.font = `bold ${telefonoSize}px Montserrat, sans-serif`;
-      ctx.fillText("3412-3456789", paddingX, baseY);
+  ctx.font = "bold 72px Montserrat, sans-serif";
 
-      if (logoURL) {
-        const logoImg = new Image();
-        logoImg.src = logoURL;
+  const palabras = textoUsuario.split(" ");
 
-        await new Promise((resolve) => {
-          logoImg.onload = () => {
-            const h = logoHeight;
-            const w = logoImg.width * (h / logoImg.height);
-            const logoX = canvas.width - w - paddingX;
-            const logoY = baseY - h + 10;
-            ctx.drawImage(logoImg, logoX, logoY, w, h);
-            resolve();
-          };
+  if (palabras.length > 2) {
+    const mitad = Math.ceil(palabras.length / 2);
+    const linea1 = palabras.slice(0, mitad).join(" ");
+    const linea2 = palabras.slice(mitad).join(" ");
 
-          logoImg.onerror = () => resolve();
-        });
-      }
+    ctx.fillText(linea1, canvas.width * 0.5, isStory ? 180 : 130);
+    ctx.fillText(linea2, canvas.width * 0.5, isStory ? 260 : 215);
+  } else {
+    ctx.fillText(textoUsuario, canvas.width * 0.5, isStory ? 220 : 170);
+  }
 
-      ctx.shadowColor = "transparent";
-    }
+  const paddingX = canvas.width * 0.06;
+  const baseY = isStory ? canvas.height - 150 : canvas.height * 0.92;
 
-    document.getElementById("texto").addEventListener("input", async () => {
-      const imgPost = document.getElementById("imgPost");
-      const imgStory = document.getElementById("imgStory");
+  ctx.textAlign = "left";
 
-      if (imgPost.src) await dibujarPreview("imgPost", "canvasPost");
-      if (imgStory.src) await dibujarPreview("imgStory", "canvasStory");
+  ctx.font = "32px Montserrat, sans-serif";
+  ctx.fillText("Consultas sin cargo", paddingX, baseY - 50);
+
+  ctx.font = "bold 48px Montserrat, sans-serif";
+  ctx.fillText("3412-3456789", paddingX, baseY);
+
+  if (logoURL) {
+    const logoImg = new Image();
+    logoImg.src = logoURL;
+
+    await new Promise((resolve) => {
+      logoImg.onload = () => {
+        const h = 90;
+        const w = logoImg.width * (h / logoImg.height);
+
+        const logoX = canvas.width - w - paddingX;
+        const logoY = baseY - h + 15;
+
+        ctx.drawImage(logoImg, logoX, logoY, w, h);
+        resolve();
+      };
+
+      logoImg.onerror = () => resolve();
     });
+  }
+
+  ctx.shadowColor = "transparent";
+}
+
+document.getElementById("texto").addEventListener("input", async () => {
+  const imgPost = document.getElementById("imgPost");
+
+  if (imgPost.src) {
+    await dibujarPost();
+    await dibujarStory();
+  }
+});
   </script>
 </body>
 </html>
