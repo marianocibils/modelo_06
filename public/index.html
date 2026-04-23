@@ -187,13 +187,25 @@ async function generar() {
   loading.style.display = "block";
 
   try {
-    const res = await fetch("/api/generar", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ texto })
-    });
+const res = await fetch("/api/generar", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ texto })
+});
 
-    const data = await res.json();
+const raw = await res.text();
+console.log("Respuesta cruda del server:", raw);
+
+let data;
+try {
+  data = JSON.parse(raw);
+} catch (e) {
+  throw new Error("La respuesta no es JSON válido");
+}
+
+if (!res.ok) {
+  throw new Error(data.error || "Error en el servidor");
+}
 
     if (data.data && data.data[0].b64_json) {
       const base64Data = data.data[0].b64_json;
