@@ -15,27 +15,47 @@ export default async function handler(req, res) {
 Estilo:
 Fotográfico profesional, iluminación cálida, alta calidad, fondo desenfocado.`;
 
-    const response = await fetch("https://api.openai.com/v1/images/generations", {
+    // 1. Endpoint de Google Generative Language API usando el modelo Imagen 3
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${process.env.GEMINI_API_KEY}`, {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "gpt-image-1.5",
-        prompt,
-        size: "1024x1024"
+        instances: [
+          {
+            prompt: prompt
+          }
+        ],
+        parameters: {
+          sampleCount: 1,
+          aspectRatio: "1:1" // Para garantizar la estructura cuadrada que venías usando
+        }
       })
     });
 
     const data = await response.json();
 
     if (!response.ok) {
-      console.error("ERROR OPENAI:", data);
+      console.error("ERROR GOOGLE:", data);
       return res.status(500).json(data);
     }
 
-    return res.status(200).json(data);
+    // 2. Control por si saltan los filtros de seguridad propios de Google
+    if (!data.predictions || !data.predictions[0] || !data.predictions[0].bytesBase64Encoded) {
+      console.error("ERROR DE GENERACIÓN O FILTROS:", data);
+      return res.status(500).json({ error: "No se pudo generar la imagen o fue bloqueada por filtros de seguridad." });
+    }
+
+    // 3. Mapeo estructural. Google devuelve la imagen en predictions[0].bytesBase64Encoded.
+    // Lo "disfrazamos" con la estructura de OpenAI (data[0].b64_json) para no tener que tocar el frontend.
+    return res.status(200).json({
+      data: [
+        {
+          b64_json: data.predictions[0].bytesBase64Encoded
+        }
+      ]
+    });
 
   } catch (error) {
     console.error("ERROR SERVER:", error);
