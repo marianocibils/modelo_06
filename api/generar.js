@@ -96,22 +96,15 @@ The image must look like a professional advertising campaign, elegant, realistic
       return imagePart.inlineData.data;
     }
 
-    // Generamos ambas en paralelo
-    const [postBase64, storyBase64] = await Promise.all([
-      generarImagen("1:1"),
-      generarImagen("9:16")
-    ]);
+const postBase64 = await generarImagen("1:1");
 
-    return res.status(200).json({
-      post: {
-        aspectRatio: "1:1",
-        b64_json: postBase64
-      },
-      story: {
-        aspectRatio: "9:16",
-        b64_json: storyBase64
-      }
-    });
+return res.status(200).json({
+  post: {
+    aspectRatio: "1:1",
+    b64_json: postBase64
+  }
+});
+
   } catch (error) {
     console.error("ERROR SERVER:", error);
     return res.status(500).json({
