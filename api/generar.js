@@ -21,12 +21,18 @@ export default async function handler(req, res) {
 
     const prompt = `Advertising hyperrealistic photo of an older adult in a natural and emotional scene, based on this idea: "${texto}".
 
+IMPORTANT COMPOSITION RULES:
+- The main subject MUST be perfectly centered in the frame.
+- The face and interaction must be located in the central 60% of the image.
+- Leave clean visual space above and below the subject (safe margins for vertical cropping).
+- Do NOT crop faces, heads, or hands.
+- Balanced composition, symmetrical framing.
+
 The person is wearing subtle hearing aids for hearing loss.
 Warm, natural lighting.
 Joyful, connected expression.
 Shallow depth of field / soft bokeh background.
-Close-up or medium shot.
-Do not add any text inside the image.
+Medium shot preferred (not too close).
 
 Possible interactions:
 - with son or daughter
