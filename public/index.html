@@ -232,7 +232,7 @@ await dibujarStory();
       link.click();
     }
 
-    async function dibujarPost() {
+async function dibujarPost() {
   const canvas = document.getElementById("canvasPost");
   const ctx = canvas.getContext("2d");
   const img = document.getElementById("imgPost");
@@ -241,6 +241,8 @@ await dibujarStory();
   canvas.height = 1080;
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // POST: imagen cuadrada, sin recorte extra
   ctx.drawImage(img, 0, 0, 1080, 1080);
 
   await dibujarContenidoComun(ctx, canvas);
@@ -256,26 +258,13 @@ async function dibujarStory() {
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Imagen ampliada y recortada para cubrir 9:16
-  const canvasRatio = canvas.width / canvas.height;
-  const imgRatio = img.width / img.height;
+  // HISTORIA: misma imagen, ampliada y recortada para cubrir 9:16
+  const scale = canvas.height / img.height;
+  const drawWidth = img.width * scale;
+  const drawHeight = canvas.height;
 
-  let drawWidth;
-  let drawHeight;
-  let offsetX;
-  let offsetY;
-
-  if (imgRatio > canvasRatio) {
-    drawHeight = canvas.height;
-    drawWidth = img.width * (canvas.height / img.height);
-    offsetX = (canvas.width - drawWidth) / 2;
-    offsetY = 0;
-  } else {
-    drawWidth = canvas.width;
-    drawHeight = img.height * (canvas.width / img.width);
-    offsetX = 0;
-    offsetY = (canvas.height - drawHeight) / 2;
-  }
+  const offsetX = (canvas.width - drawWidth) / 2;
+  const offsetY = 0;
 
   ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
 
